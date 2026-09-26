@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -107,4 +108,34 @@ func (rt *RoutingTable) Add(contact Contacts) {
 	} else {
 		fmt.Println("Same peer cant connect with each other")
 	}
+}
+func (rt *RoutingTable) FindClosestContacts(targetId NodeId, k int) []Contacts {
+	var allContacts []Contacts
+
+	for _, bucket := range rt.buckets {
+		allContacts = append(allContacts, bucket.contacts...)
+	}
+	sort.Slice(allContacts, func(i, j int) bool {
+		d1 := targetId.XOR(allContacts[i].Id)
+		d2 := targetId.XOR(allContacts[j].Id)
+		return d1.Cmp(d2) == -1
+	})
+	if len(allContacts) > k {
+		return allContacts[:k]
+	}
+	return allContacts
+}
+func NewNodeId(data []byte) NodeId {
+	hash := sha1.Sum(data[:])
+	var newId NodeId
+	copy(newId[:], hash[:len(newId)])
+	return newId
+}
+
+func NewRoutingTable(selfId NodeId) *RoutingTable {
+	buckets := make([]KBuckets, Idbits)
+	for i := 0; i < len(buckets); i++ {
+		buckets[i] = KBuckets{contacts: make([]Contacts, 0, contactsize)}
+	}
+	return &RoutingTable{buckets: buckets, selfId: selfId}
 }
