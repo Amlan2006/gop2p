@@ -92,3 +92,19 @@ func GetMSBIndex(distance *big.Int) int {
 	}
 	return distance.BitLen() - 1
 }
+func (rt *RoutingTable) Add(contact Contacts) {
+	distance := rt.selfId.XOR(contact.Id)
+	index := GetMSBIndex(distance)
+
+	if index >= 0 {
+		isAdded := rt.buckets[index].Add(contact)
+		if isAdded {
+			fmt.Printf("The contact is added to bucket : %d \n", index)
+
+		} else {
+			fmt.Println("Not added")
+		}
+	} else {
+		fmt.Println("Same peer cant connect with each other")
+	}
+}
