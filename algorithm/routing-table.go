@@ -12,8 +12,10 @@ import (
 
 const Idlength = 16
 const Idbits = 8
+const NodeIdBytes = Idlength / Idbits // 2 bytes
+const NodeIdBits = NodeIdBytes * 8    // 16 bits — number of buckets needed
 
-type NodeId [Idlength / Idbits]byte
+type NodeId [NodeIdBytes]byte
 
 func (id NodeId) String() string {
 	return hex.EncodeToString(id[:])
@@ -133,7 +135,7 @@ func NewNodeId(data []byte) NodeId {
 }
 
 func NewRoutingTable(selfId NodeId) *RoutingTable {
-	buckets := make([]KBuckets, Idbits)
+	buckets := make([]KBuckets, NodeIdBits)
 	for i := 0; i < len(buckets); i++ {
 		buckets[i] = KBuckets{contacts: make([]Contacts, 0, contactsize)}
 	}
